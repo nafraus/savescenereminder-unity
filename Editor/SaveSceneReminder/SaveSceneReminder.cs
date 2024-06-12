@@ -1,15 +1,9 @@
 #if UNITY_EDITOR
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Timers;
-using PlasticGui.Configuration.CloudEdition.Welcome;
-using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 //TODO Configuration mode, beautify editor windows, See if Other Timer methods are valid
 
@@ -87,7 +81,7 @@ public class SaveSceneReminder : EditorWindow
         GUILayout.Label("Save Scene Reminder Tool");
         if (GUILayout.Button(texture))
         {
-            GUILayout.Window(0,new Rect(20, 20, 120 , 50), DrawWindowContents, "Configuration");
+            GUILayout.Window(0,new Rect(Screen.currentResolution.width/2, Screen.currentResolution.height/2, 120 , 50), DrawWindowContents, "Configuration");
         }
         GUI.skin = defaultSkin;
         
@@ -303,7 +297,15 @@ public class SaveSceneReminderPopup : EditorWindow
         
         //For now, always puts popup in top left corner b/c mac has a bug with Screen.currentResolution
         //https://forum.unity.com/threads/get-screen-resolution-not-window-resolution.319511/
-        window.position = new Rect(0, 0, 200, 125);
+        
+        #if UNITY_EDITOR_WIN
+            window.position = new Rect(Screen.currentResolution.width/2, Screen.currentResolution.height/2, 200, 125);
+        #else
+            //Bug with Mac where Screen.currentResolution is weird
+            //https://forum.unity.com/threads/get-screen-resolution-not-window-resolution.319511/
+            window.position = new Rect(0, 0, 200, 125);
+        #endif
+
         window.ShowPopup();
         PlayAlertSound(SaveSceneReminder.GetData().AlertClip);
     }
@@ -361,6 +363,38 @@ public class SaveSceneReminderPopup : EditorWindow
         {
             Close();
         }
+    }
+}
+
+
+public class SaveSceneReminderConfiguration : EditorWindow
+{
+    private int miliseconds;
+    private AudioClip audioClip;
+    private int volume;
+    
+    public SerializedProperty clip
+    {
+        get;
+        set;
+    }
+    public static void ShowWindow()
+    {
+        var window = GetWindow<SaveSceneReminderConfiguration>("Configuration");
+    }
+
+    public void SaveConfiguration()
+    {
+        
+    }
+
+    private void OnGUI()
+    {
+        miliseconds = EditorGUILayout.IntField("Don't know: ", miliseconds);
+        
+        //audioClip = EditorGUILayout.ObjectField("Clip",obj, typeof(AudioClip));
+
+        volume = EditorGUILayout.IntSlider("Volume",volume, 0, 100);
     }
 }
 #endif
